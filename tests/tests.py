@@ -55,11 +55,11 @@ class TestFunctional(TestCase):
         self.assertEqual(self.dictionary.__setitem__(filename2, text2), None)
         
         self.assertEqual(len(self.dictionary), 2)
-        self.assertEqual(self.dictionary.__delitem__(filename1), None)
+        self.assertEqual(self.dictionary.__delitem__(filename1), text1)
         self.assertEqual(len(self.dictionary), 1)
         with self.assertRaises(IndexError):
             self.dictionary[filename1]
-        self.assertEqual(self.dictionary.__delitem__(filename2), None)
+        self.assertEqual(self.dictionary.__delitem__(filename2), text2)
         self.assertEqual(len(self.dictionary), 0)
 
     def test__loop(self):
@@ -78,10 +78,11 @@ class TestFunctional(TestCase):
             with self.subTest(i=i):
                 self.assertEqual(self.dictionary[iterator.__next__()], texts[i])
         
-        iterator = self.dictionary.items()
+        dict_items = self.dictionary.items()
         for i in range(3):
             with self.subTest(i=i):
-                self.assertEqual(iterator.__next__()[1], texts[i])
+                self.assertEqual(dict_items[i][0], filenames[i])
+                self.assertEqual(dict_items[i][1], texts[i])
 
 
 class SomeInformation:
@@ -127,4 +128,61 @@ class TestAdvanced(TestCase):
             info = new_info
 
         self.assertEqual(self.dictionary[filename], info)
+
+    def test__clear(self):
+        filenames = ["first.txt", "second.txt", "third.txt"]
+        texts = ["one", "two", "three"]
+        
+        
+        for i in range(3):
+            with self.subTest(i=i):
+                self.assertEqual(self.dictionary.__setitem__(filenames[i], texts[i]), None)
+
+        self.assertEqual(self.dictionary.clear(), None)
+        self.assertEqual(len(self.dictionary), 0)
+
+    def test__default_get(self):
+        filename = "first.txt"
+        info = "some info"
+        no_existing_filename = "no_exist.txt"
+
+        self.assertEqual(self.dictionary.__setitem__(filename, info), None)
+        self.assertEqual(self.dictionary.get(no_existing_filename, 42), 42)
+
+    def test__pop(self):
+        filename = "first.txt"
+        info = "some info"
+        no_existing_filename = "no_exist.txt"
+
+        self.assertEqual(self.dictionary.__setitem__(filename, info), None)
+        self.assertEqual(self.dictionary.pop(no_existing_filename, 42), 42)
+
+    def test__setdefault(self):
+        filename = "first.txt"
+        info = "some info"
+        no_existing_filename = "no_exist.txt"
+
+        self.assertEqual(self.dictionary.__setitem__(filename, info), None)
+        self.assertEqual(self.dictionary.setdefault(no_existing_filename, '42'), '42')
+        self.assertEqual(self.dictionary.setdefault(filename), info)
+
+    def test__advanced_loop(self):
+        filenames = ["first.txt", "second.txt", "third.txt"]
+        texts = ["one", "two", "three"]
+        
+        
+        for i in range(3):
+            with self.subTest(i=i):
+                self.assertEqual(self.dictionary.__setitem__(filenames[i], texts[i]), None)
+
+        dict_keys = self.dictionary.keys()
+        for i in range(3):
+            with self.subTest(i=i):
+                self.assertEqual(dict_keys[i], filenames[i])
+
+        dict_values = self.dictionary.values()
+        for i in range(3):
+            with self.subTest(i=i):
+                self.assertEqual(dict_values[i], texts[i])
+
 

@@ -31,8 +31,7 @@ class DirDict(MutableMapping):
                 for line in f:
                     answer += line
             return answer
-        else:
-            raise IndexError
+        raise IndexError
 
     def __setitem__(self, filename, info):
         if not filename:
@@ -42,7 +41,14 @@ class DirDict(MutableMapping):
             f.write(str(info))
 
     def __delitem__(self, filename):
-        os.remove(os.path.join(self._root_dir, filename))
+        if not filename:
+            raise SyntaxError
+        keypath = os.path.join(self._root_dir, filename)
+        if os.path.exists(keypath):
+            info = self.__getitem__(filename)
+            os.remove(keypath)
+            return info
+        raise IndexError
 
     def __iter__(self):
         keys = os.listdir(self._root_dir)
@@ -51,8 +57,39 @@ class DirDict(MutableMapping):
 
     def items(self):
         keys = os.listdir(self._root_dir)
+        return [(key, self.__getitem__(key)) for key in keys]
+
+    def keys(self):
+        return os.listdir(self._root_dir)
+
+    def values(self):
+        keys = os.listdir(self._root_dir)
+        return [self.__getitem__(key) for key in keys]
+
+    def clear(self):
+        keys = os.listdir(self._root_dir)
         for key in keys:
-            yield (key, self.__getitem__(key))
+            os.remove(os.path.join(self._root_dir, key))
+
+    def get(self, filename, default=None):
+        try:
+            return self.__getitem__(filename)
+        except IndexError:
+            return default
+
+    def pop(self, filename, default=None):
+        try:
+            info = self.__getitem__(filename)
+            return info
+        except IndexError:
+            return default
+
+    def setdefault(self, filename, default=''):
+        try:
+            return self.__getitem__(filename)
+        except IndexError:
+            self.__setitem__(filename, default)
+            return default
 
 
 if __name__ == "__main__":
